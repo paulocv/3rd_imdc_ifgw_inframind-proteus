@@ -211,6 +211,27 @@ def coverages_vectorized(
     available_q = simulations_df.index.get_level_values("quantile").unique().values
     available_q.sort()
 
+    # ==== EXPERIMENTAL: Filter point to calculate for
+    # Based on observations
+    if False:
+        max_obs = observations_sr.max()
+        thresh = 0.05 * max_obs
+        min_points = 10
+
+        # Find time steps where observed counts are above threshold
+        # or there are at least min_points (with highest values)
+        above_mask: pd.Series = observations_sr >= thresh
+        if above_mask.sum() < min_points:
+            # If not enough points above threshold, take the top min_points
+            top_indices = observations_sr.nlargest(min_points).index
+            mask = observations_sr.index.isin(top_indices)
+        else:
+            mask = above_mask
+        # Apply filter
+        observations_sr = observations_sr[mask]
+        simulations_df = simulations_df.loc[:, mask]
+
+
     # Greater-than and less-than masks
     sim_le_obs = simulations_df.T.le(observations_sr, axis=0).T
     sim_ge_obs = simulations_df.T.ge(observations_sr, axis=0).T
