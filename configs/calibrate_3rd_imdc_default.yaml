@@ -2,6 +2,9 @@
 # SimulationConfig dictionary to serve as template for simulation calls.
 #base_sim_config_fpath: "configs/simulation_config_default.yaml"
 
+# Change path to intermediate location
+output_dir: "outputs/post_validation_round/calibrations"
+
 # -()- Full run
 use_location_ids: []  # Run all
 use_years: [

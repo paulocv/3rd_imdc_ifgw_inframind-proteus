@@ -8,7 +8,8 @@ from inframind_proteus.outbreak_dynamics.utils import map_parallel_or_sequential
 
 def main():
     xt0 = time.time()
-    main_out_dir = Path("outputs/validation_round_calibration")
+    main_out_dir = Path("outputs/post_validation_round/calibrations")
+    # main_out_dir = Path("outputs/validation_round_calibration")
     # main_out_dir = Path("outputs/quick_test_runs/calibrations2")
     # main_out_dir = Path(".local/mind-runner_local/validation_round_calibration")
 

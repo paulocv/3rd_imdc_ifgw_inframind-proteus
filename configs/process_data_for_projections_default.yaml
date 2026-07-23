@@ -1,4 +1,8 @@
 
+# Change path to intermediate location
+calibrations_main_dir: "outputs/post_validation_round/calibrations"
+output_dir: "outputs/post_validation_round/projections"
+
 ## -()- Quick test runs
 #use_location_ids: ["AC", "SP"]
 #use_projection_years: [2022, 2023]  # For testing
