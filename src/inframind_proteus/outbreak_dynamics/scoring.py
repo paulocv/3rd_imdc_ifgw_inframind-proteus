@@ -215,7 +215,7 @@ def coverages_vectorized(
     # Based on observations
     if False:
         max_obs = observations_sr.max()
-        thresh = 0.05 * max_obs
+        thresh = 0.20 * max_obs
         min_points = 10
 
         # Find time steps where observed counts are above threshold
