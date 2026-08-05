@@ -67,11 +67,30 @@ class ProgramConfig(BaseConfig):
     # base_sim_config_fpath: Path = Path("configs/simulation_config_default.yaml")
     # # NOTE: This loads the defaults, which may have diverged from the actual simulation.
     # # When possible, use a reconstructed config dict from the simulation outputs.
-    calibrations_main_dir: Path = Path("outputs/validation_round_calibration")
+
+    # # -()- Validation round paths and params
+    # calibrations_main_dir: Path = Path("outputs/validation_round_calibration")
+    # outbreak_features_predictions_dir: Path = Path("outputs/validation_round_outbreak_features")
+    # location_year_subdir_fmt: str = "{location_id}_{year}"
+    # # outbreak_features_predictions_dir: Path = Path("predictions")
+    # output_dir: Path = Path("outputs/validation_round_projections")
+    # use_projection_years: list[int] = [2022, 2023, 2024, 2025]  # Validation round projection years
+    # use_calibration_years: list[int] = [
+    #     2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021,
+    #     2022, 2023, 2024,
+    # ]
+
+    # -()- Forecast round paths and params
+    calibrations_main_dir: Path = Path("outputs/forecast_round/calibrations")
+    outbreak_features_predictions_dir: Path = Path("outputs/forecast_round_outbreak_features") # TODO Get updated
     location_year_subdir_fmt: str = "{location_id}_{year}"
-    outbreak_features_predictions_dir: Path = Path("outputs/validation_round_outbreak_features")
-    # outbreak_features_predictions_dir: Path = Path("predictions")
-    output_dir: Path = Path("outputs/validation_round_projections")
+    output_dir: Path = Path("outputs/forecast_round/projections")
+    use_projection_years: list[int] = [2026]  # Validation round projection years
+    use_calibration_years: list[int] = [
+        2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021,
+        2022, 2023, 2024,
+        2025,  # Additional for forecast round
+    ]
 
     uf_table_fpath = Path("data/demographic/uf_table.csv")
 
@@ -79,14 +98,6 @@ class ProgramConfig(BaseConfig):
     projection_sampling_seed = 5
 
     use_location_ids: list = []
-
-    # use_projection_years: list[int] = [2025]  # test
-    use_projection_years: list[int] = [2022, 2023, 2024, 2025]  # Validation round projection years
-
-    use_calibration_years: list[int] = [
-        2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021,
-        2022, 2023, 2024
-    ]
 
     # Years which should not be used for calibration for each location,
     #   e.g. due to missing data or known anomalies.

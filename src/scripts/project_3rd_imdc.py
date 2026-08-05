@@ -57,7 +57,9 @@ class ProgramConfig(BaseConfig):
     uf_table_fpath = Path("data/demographic/uf_table.csv")
 
     # --- Output directory subpaths
-    output_dir: Path = Path("outputs/validation_round_projections")
+    # output_dir: Path = Path("outputs/validation_round_projections")  # -()- Validation round
+    output_dir: Path = Path("outputs/forecast_round/projections")  # -()- Projections round
+
     projections_dirname: str = "projections"
     location_year_subdir_fmt: str = "{location_id}_{year}"
     parameter_samples_fname: str = (
@@ -71,7 +73,8 @@ class ProgramConfig(BaseConfig):
     # --- Locations and years to run
     use_location_ids = []  # Runs all!
     exclude_location_ids: list[str] = list()
-    use_projection_years = [2022, 2023, 2024, 2025]
+    # use_projection_years = [2022, 2023, 2024, 2025]  # -()- Validation round
+    use_projection_years = [2026]  # -()- Forecast round
 
     ncpus = 1
 
