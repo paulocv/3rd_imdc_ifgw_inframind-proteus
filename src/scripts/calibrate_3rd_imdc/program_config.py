@@ -66,7 +66,8 @@ class ProgramConfig(BaseConfig):
     config_fpath: Path = Path("configs/calibrate_3rd_imdc_default.yaml")
     base_sim_config_fpath: Path = Path("configs/simulation_config_default.yaml")  # Optional path to a separate simulation config file (overrides config.sim_cfg)
 
-    output_dir: Path = Path("outputs/validation_round_calibration")
+    # output_dir: Path = Path("outputs/validation_round_calibration")  # Validation round
+    output_dir: Path = Path("outputs/forecast_round/calibrations")  # Forecast round
     location_year_subdir_fmt: str = "{location_id}_{year}"
 
     uf_table_fpath = Path("data/demographic/uf_table.csv")

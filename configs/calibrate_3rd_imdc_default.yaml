@@ -3,13 +3,14 @@
 #base_sim_config_fpath: "configs/simulation_config_default.yaml"
 
 # Change path to intermediate location
-output_dir: "outputs/post_validation_round/calibrations"
+#output_dir: "outputs/post_validation_round/calibrations"
 
 # -()- Full run
 use_location_ids: []  # Run all
 use_years: [
   2010, 2011, 2012, 2013, 2014, 2015, 2016,
-  2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024
+  2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024,
+  2025
 ]
 ncpus: 12
 stage1:
