@@ -64,6 +64,8 @@ Prepared intermediate data (processed from IMDC files):
 - UF weekly dengue notifications: `data/disease/dengue_cases_uf_weekly/dengue_<UF>.csv`
 - UF metadata/population table: `data/demographic/uf_table.csv`
 
+Note: Population data from 2025 was repeated for 2026 and 2027 when needed.
+
 No external data sources were used.
 
 
