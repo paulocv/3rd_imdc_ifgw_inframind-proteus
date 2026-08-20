@@ -1,6 +1,6 @@
 
-# Change path to intermediate location
-output_dir: "outputs/post_validation_round/projections"
+## Change path to intermediate location
+#output_dir: "outputs/post_validation_round/projections"
 
 # # -()- Quick test runs
 #use_location_ids: ["AC", "SP"]
@@ -10,8 +10,9 @@ output_dir: "outputs/post_validation_round/projections"
 
 # -()- Full runs
 use_location_ids: []
-use_projection_years: [2022, 2023, 2024, 2025]
-ncpus: 12
+#use_projection_years: [2022, 2023, 2024, 2025]  # Validation round
+use_projection_years: [2025, 2026]  # Validation round
+ncpus: 4
 
 ## -()- Alternative 01: Add outbreak features likelihood temperature
 #output_dir: "outputs/sensitivity/outb_feats_ll_temperature_v01"

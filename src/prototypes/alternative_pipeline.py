@@ -10,14 +10,19 @@ def main():
 
     # Define stuff
     # ================
-    calibration_config_fpath = Path(".tmp/calibrate_3rd_imdc_higher-overdisp-bound.yaml")
-    process_config_fpath = Path(".tmp/process_data_for_projections_higher-overdisp-bound.yaml")
-    project_config_fpath = Path(".tmp/project_3rd_imdc_higher-overdisp-bound.yaml")
+    # calibration_config_fpath = Path(".tmp/calibrate_3rd_imdc_higher-overdisp-bound.yaml")
+    # process_config_fpath = Path(".tmp/process_data_for_projections_higher-overdisp-bound.yaml")
+    # project_config_fpath = Path(".tmp/project_3rd_imdc_higher-overdisp-bound.yaml")
+    # master_output_dir = Path("outputs/sensitivity/higher_overdisp_bound")
 
-    master_output_dir = Path("outputs/sensitivity/higher_overdisp_bound")
+    calibration_config_fpath = Path("configs/calibrate_3rd_imdc_default.yaml")
+    process_config_fpath = Path("configs/process_data_for_projections_default.yaml")
+    project_config_fpath = Path("configs/project_3rd_imdc_default.yaml")
 
-    run_calibration     = True
-    run_outb_features   = True
+    master_output_dir = Path("outputs/forecast_round")
+
+    run_calibration     = False
+    run_outb_features   = False
     run_data_processing = True
     run_projections     = True
 

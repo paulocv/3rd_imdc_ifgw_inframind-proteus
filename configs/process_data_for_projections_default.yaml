@@ -10,18 +10,20 @@ output_dir: "outputs/post_validation_round/projections"
 #calibrations_main_dir: "outputs/quick_test_runs/calibrations"  # -()- Take from quick test as well
 #output_dir: "outputs/quick_test_runs"
 
-# -()- Full run
+## -()- Full run
+#use_location_ids: []
+#use_projection_years: [2022, 2023, 2024, 2025]
+#ncpus: 12
+#outbreak_features_predictions_dir: "predictions"  # Use separate `predictions` dir for now
+##outbreak_feature_names: [  # Select which outbreak features are used to update distributions. Use default otherwise.
+##  "peak_week",
+##]
+
+## -()- Alternative 01: Alternative outbreak feature predictions
 use_location_ids: []
-use_projection_years: [2022, 2023, 2024, 2025]
-ncpus: 12
-
-## -()- Alternative 01: Add outbreak features likelihood temperature
-#ll_temperature: 0.2
-#output_dir: "outputs/sensitivity/outb_feats_ll_temperature_v01"
-
-## -()- Alternative 02: Higher number of projection simulations (ACCEPTED AS DEFAULT)
-#num_projection_samples: 5000
-#output_dir: "outputs/sensitivity/change_post_sample_size_01"
+use_projection_years: [2025, 2026]
+ncpus: 4
+outbreak_features_predictions_dir: ".tmp/predictions/default"  # Use separate `predictions` dir for now
 
 
 ## -()- Sensitivity: No update from outbreak features
@@ -40,8 +42,3 @@ exclude_years_by_location:
   SE: [2018,]  # Calibration got artificially early season end, bad fit after peak
 
 
-#outbreak_features_predictions_dir: "outputs/outbreak_features_mockup"  # Use mockup dir
-outbreak_features_predictions_dir: "predictions"  # Use separate `predictions` dir for now
-#outbreak_feature_names: [  # Select which outbreak features are used to update distributions. Use default otherwise.
-#  "peak_week",
-#]
