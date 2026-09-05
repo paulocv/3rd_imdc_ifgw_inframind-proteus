@@ -4,7 +4,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from . import config
+from . import config, vintage
 
 _FOLD_COLS = [f"{p}_{k}" for k in range(1, 5) for p in ("train", "target")]
 
@@ -28,14 +28,14 @@ class DataRepository:
     def _load_dengue(self) -> pd.DataFrame:
         usecols = ["casos", "epiweek", self.unit_col] + _FOLD_COLS
         dtypes = {"casos": "int32", "epiweek": "int32", self.unit_col: "int32"}
-        df = pd.read_csv(config.DENGUE_FILE, usecols=usecols, dtype=dtypes)
+        df = vintage.read_dengue(usecols=usecols, dtype=dtypes)
         for c in _FOLD_COLS:
             df[c] = df[c].astype(str).eq("True")
         return df
 
     def _load_population(self) -> pd.DataFrame:
-        pop = pd.read_csv(
-            config.POP_FILE, dtype={"geocode": "int32", "year": "int32", "population": "int64"}
+        pop = vintage.read_population(
+            dtype={"geocode": "int32", "year": "int32", "population": "int64"}
         )
         xwalk = pd.read_csv(
             config.CROSSWALK_FILE, usecols=["geocode", self.unit_col]

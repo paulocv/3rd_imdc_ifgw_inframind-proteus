@@ -17,6 +17,15 @@ CLIMATE_FILE = DATA_DIR / "climate.csv.gz"
 FORECAST_FILE = DATA_DIR / "forecasting_climate.csv.gz"
 CACHE_DIR = REPO_ROOT / ".cache"
 
+# 2026-2027 forecast phase
+DENGUE_UPDATE_FILES = [DATA_DIR / "dengue_update_2026.csv.gz"]
+CHIK_UPDATE_FILES = [DATA_DIR / "chikungunya_update_2026.csv.gz"]
+CLIMATE_UPDATE_FILES = [DATA_DIR / "climate_update_2026.csv.gz"]
+FORECAST_UPDATE_FILES = [DATA_DIR / "forecasting_climate_update_2026.csv.gz"]
+OCEAN_UPDATE_FILES = [DATA_DIR / "ocean_climate_oscillations_update_2026.csv.gz"]
+OCEAN_REFRESHED_FILE = DATA_DIR / "ocean_climate_oscillations_refreshed.csv.gz"
+POP_EXTEND_TO_YEAR = 2026          # DATASUS stops at 2025; carry denominators forward
+
 # Spatial level -> the key column (present in both dengue.csv.gz and the crosswalk).
 SPATIAL_LEVELS = {
     "municipality": "geocode",

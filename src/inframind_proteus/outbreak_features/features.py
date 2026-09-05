@@ -9,7 +9,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from . import config
+from . import config, vintage
 
 
 # ---- climate / forecast aggregation ----------------------------------------
@@ -19,7 +19,7 @@ def _xwalk(unit_col: str) -> pd.DataFrame:
 
 
 def _pop() -> pd.DataFrame:
-    return pd.read_csv(config.POP_FILE, dtype={"geocode": "int32", "year": "int32", "population": "int64"})
+    return vintage.read_population(dtype={"geocode": "int32", "year": "int32", "population": "int64"})
 
 
 def build_climate_panel(unit_col: str, spatial_level: str) -> pd.DataFrame:
@@ -30,7 +30,7 @@ def build_climate_panel(unit_col: str, spatial_level: str) -> pd.DataFrame:
 
     cols = ["epiweek", "geocode", "date"] + config.CLIMATE_VARS
     dt = {"epiweek": "int32", "geocode": "int32", **{v: "float32" for v in config.CLIMATE_VARS}}
-    df = pd.read_csv(config.CLIMATE_FILE, usecols=cols, dtype=dt)
+    df = vintage.read_climate(usecols=cols, dtype=dt)
     df["year"] = (df["epiweek"] // 100).astype("int32")
     df["month"] = pd.to_datetime(df["date"]).dt.month.astype("int16")
     df = df.drop(columns=["date"]).merge(_xwalk(unit_col), on="geocode", how="inner")
@@ -59,8 +59,7 @@ def build_forecast_panel(unit_col: str, spatial_level: str) -> pd.DataFrame:
     if cache.exists():
         return pd.read_pickle(cache)
 
-    df = pd.read_csv(
-        config.FORECAST_FILE,
+    df = vintage.read_forecast(
         usecols=["geocode", "reference_month", "forecast_months_ahead", "temp_med", "umid_med"],
         dtype={"geocode": "int32", "forecast_months_ahead": "int16",
                "temp_med": "float32", "umid_med": "float32"},

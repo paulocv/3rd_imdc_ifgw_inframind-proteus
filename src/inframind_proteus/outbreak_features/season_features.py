@@ -14,7 +14,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from . import config
+from . import config, vintage
 from .data import DataRepository
 from .features import build_climate_panel, build_forecast_panel
 
@@ -41,8 +41,8 @@ def _static_env_features(repo: DataRepository) -> tuple[pd.DataFrame, list[str],
                       dtype={"geocode": "int32"})
     xwalk = (pd.read_csv(config.CROSSWALK_FILE, usecols=["geocode", unit_col])
              .astype({"geocode": "int32", unit_col: "int32"}).drop_duplicates("geocode"))
-    pop = pd.read_csv(config.POP_FILE, dtype={"geocode": "int32", "year": "int32",
-                                              "population": "int64"})
+    pop = vintage.read_population(dtype={"geocode": "int32", "year": "int32",
+                                         "population": "int64"})
     pop = pop.sort_values("year").groupby("geocode", as_index=False)["population"].last()  # latest weight
     df = env.merge(xwalk, on="geocode", how="inner").merge(pop, on="geocode", how="left")
     df["population"] = df["population"].fillna(1.0)
@@ -184,12 +184,15 @@ def _file_fingerprint(*paths) -> str:
 def _ocean_by_epiweek() -> pd.DataFrame:
     """Weekly ENSO/IOD/PDO aligned to epiweek (date asof-merged to the dengue grid). Cached,
     keyed on a fingerprint of the source files so an upstream data change invalidates it."""
-    fp = _file_fingerprint(config.OCEAN_FILE, config.DENGUE_FILE)
+    fp = _file_fingerprint(config.OCEAN_FILE, config.DENGUE_FILE,
+                           *[f for f in (config.OCEAN_UPDATE_FILES
+                                         + config.DENGUE_UPDATE_FILES
+                                         + [config.OCEAN_REFRESHED_FILE]) if f.exists()])
     cache = config.CACHE_DIR / f"ocean_epiweek_{fp}.pkl"
     if cache.exists():
         return pd.read_pickle(cache)
-    o = pd.read_csv(config.OCEAN_FILE, parse_dates=["date"]).sort_values("date")
-    m = pd.read_csv(config.DENGUE_FILE, usecols=["date", "epiweek"], dtype={"epiweek": "int32"})
+    o = vintage.read_ocean(parse_dates=["date"]).sort_values("date")
+    m = vintage.read_dengue(usecols=["date", "epiweek"], dtype={"epiweek": "int32"})
     m["date"] = pd.to_datetime(m["date"])
     m = m.drop_duplicates("date").sort_values("date")
     o = pd.merge_asof(o, m, on="date", direction="backward").dropna(subset=["epiweek"])

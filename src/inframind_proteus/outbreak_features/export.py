@@ -35,15 +35,19 @@ DEFAULT_YEARS = (2022, 2023, 2024, 2025)
 
 
 # ---- sampling helper -------------------------------------------------------
-def sample_from_quantiles(qlevels, qvals, n: int, rng, clip_min: float = 0.0) -> np.ndarray:
+def sample_from_quantiles(qlevels, qvals, n: int, rng, clip_min: float = 0.0,
+                          u: np.ndarray | None = None) -> np.ndarray:
     """Draw n samples from a distribution defined by a quantile ladder.
 
     Piecewise-linear inverse-CDF between the given quantiles; the tails are linearly
     extrapolated from the outermost segments. `qvals` must be sorted ascending (monotone).
+
+    Pass `u` to supply the uniform draws instead of taking fresh ones from `rng`; sharing one
+    `u` across several targets couples their samples comonotonically (see `_size_samples`).
     """
     qlevels = np.asarray(qlevels, float)
     qvals = np.asarray(qvals, float)
-    u = rng.uniform(0.0, 1.0, n)
+    u = rng.uniform(0.0, 1.0, n) if u is None else np.asarray(u, float)
     s = np.interp(u, qlevels, qvals)                       # clamps to endpoints outside the ladder
     lo_slope = (qvals[1] - qvals[0]) / (qlevels[1] - qlevels[0])
     hi_slope = (qvals[-1] - qvals[-2]) / (qlevels[-1] - qlevels[-2])
@@ -107,8 +111,16 @@ def _augment_labels(labels: pd.DataFrame, units, years) -> pd.DataFrame:
     return pd.concat([labels, add[labels.columns]], ignore_index=True)
 
 
-def _size_samples(repo, asm, lab_idx, X_tr, X_ts, target, n_samples, rng):
-    """Empirical size samples (rate space) from catboost_anom's predictive quantile ladder."""
+def _size_samples(repo, asm, lab_idx, X_tr, X_ts, target, n_samples, rng, u=None):
+    """Empirical size samples (rate space) from catboost_anom's predictive quantile ladder.
+
+    `u` is a (units x n_samples) matrix of uniform draws shared across the size targets, so
+    sample i of a unit sits at the same quantile of every size marginal. The two size targets
+    are marginals of one season, and drawing them independently produced physically impossible
+    samples with `peak_amplitude > case_attack_rate` (3.7% of the validation deliverable).
+    Comonotonic coupling makes a big season draw a big peak; it does not *guarantee* the
+    ordering, since the two marginals are predicted separately, so the caller checks.
+    """
     y_tr = lab_idx.reindex(X_tr.index)[target]
     units = X_ts.index.get_level_values("unit").to_numpy()
     model = CatBoostAnomModel(target, cat_features=asm.cat_features, repo=repo,
@@ -118,7 +130,8 @@ def _size_samples(repo, asm, lab_idx, X_tr, X_ts, target, n_samples, rng):
     cols = list(q.columns)
     draws = np.empty((len(units), n_samples))
     for i in range(len(units)):
-        draws[i] = sample_from_quantiles(cols, np.sort(q.iloc[i].to_numpy()), n_samples, rng)
+        draws[i] = sample_from_quantiles(cols, np.sort(q.iloc[i].to_numpy()), n_samples, rng,
+                                         u=None if u is None else u[i])
     return units, draws                                    # (units, n_samples)
 
 
@@ -177,11 +190,21 @@ def build_features_export(years=DEFAULT_YEARS, n_samples: int = 500, level: str 
         print(f"[year {Y}] t0={t0} | train {len(X_tr)} rows / {len(train_seasons)} seasons "
               f"| target {len(X_ts)} units")
 
+        # one uniform matrix shared by both size targets -> comonotonic coupling (see _size_samples)
+        U = rng.uniform(0.0, 1.0, (len(X_ts), n_samples))
+        size_draws = {}
         for target in SIZE_TARGETS:
-            units, draws = _size_samples(repo, asm, lab_idx, X_tr, X_ts, target, n_samples, rng)
+            units, draws = _size_samples(repo, asm, lab_idx, X_tr, X_ts, target, n_samples, rng, u=U)
+            size_draws[target] = draws
             for i, u in enumerate(units):
                 out.append(pd.DataFrame({"unit": u, "year": Y, "target": target,
                                          "i_sample": np.arange(draws.shape[1]), "value": draws[i]}))
+
+        # a season's peak week cannot exceed its total; coupling makes this rare, not impossible
+        bad = size_draws["size_peak_incidence"] > size_draws["size_attack_rate"]
+        if bad.any():
+            print(f"    [size] {bad.sum()}/{bad.size} samples ({100 * bad.mean():.2f}%) have "
+                  f"peak > total after coupling")
 
         units, draws, n_fb = _timing_samples(repo, Y, t0, n_samples, rng)
         if n_fb:

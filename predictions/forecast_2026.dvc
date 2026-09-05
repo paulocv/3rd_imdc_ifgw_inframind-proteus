@@ -1,0 +1,6 @@
+outs:
+- md5: a2abd2613bf526ab4d52a44f0050c0f5.dir
+  size: 2426183
+  nfiles: 4
+  hash: md5
+  path: forecast_2026
