@@ -12,6 +12,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Union, Tuple, Any, Literal
 
+import numpy as np
 import pandas as pd
 import matplotlib as mpl
 import matplotlib.dates
@@ -28,6 +29,7 @@ from inframind_proteus.outbreak_dynamics.outbreak_features import OutbreakFeatur
 from inframind_proteus import BaseConfig
 from inframind_proteus.outbreak_dynamics.utils import load_yaml_dict, parse_set_arguments_with_yaml, add_set_argument, \
     apply_include_exclude_logic, map_parallel_or_sequential, make_axes_seq, save_yaml_dict, make_yaml_exportable_dict
+from inframind_proteus.outbreak_dynamics.kde_gaussian_likelihood import kde_gaussian_likelihood
 
 
 def main(argv: Union[list[str], None] = None):
@@ -82,7 +84,7 @@ class ProgramConfig(BaseConfig):
 
     # -()- Forecast round paths and params
     calibrations_main_dir: Path = Path("outputs/forecast_round/calibrations")
-    outbreak_features_predictions_dir: Path = Path("outputs/forecast_round_outbreak_features") # TODO Get updated
+    outbreak_features_predictions_dir: Path = Path("predictions/forecast_2026")
     location_year_subdir_fmt: str = "{location_id}_{year}"
     output_dir: Path = Path("outputs/forecast_round/projections")
     use_projection_years: list[int] = [2026]  # Validation round projection years
@@ -108,8 +110,8 @@ class ProgramConfig(BaseConfig):
     outbreak_feature_names: list[str] = OutbreakFeaturePredictionsCache.feature_names
 
     outbreak_features_fit_model: Literal[
-        "kde", "normal", "lognormal"
-    ]  = "kde"
+        "kde", "kde-gaussian", "normal", "lognormal"
+    ]  = "kde-gaussian"
 
     ll_temperature: float = 1.0  # Temperature for loglikelihood evaluation (1.0 = no change)
     # This allows us to tune the overall influence of outbreak features.
@@ -441,12 +443,20 @@ def load_and_preprocess_location_data(
     ).set_index(["year", "i_simulation"])
 
     # --- Merge with outbreak features
-    # ONLY MEAN to simplify column indexing and plotting
+    # Extract mean estimates
     mean_outbreak_features = outbreak_features_df.xs("mean", level="stat", axis=1)
     df = pd.merge(
         left=df,
         right=mean_outbreak_features,
         left_index=True, right_index=True,
+    )
+    # Extract standard deviations
+    std_outbreak_features: pd.DataFrame = outbreak_features_df.xs("std", level="stat", axis=1)
+    df = pd.merge(
+        left=df,
+        right=std_outbreak_features.rename(columns=lambda c: f"{c}_std"),
+        left_index=True, right_index=True,
+        suffixes=("", "_std"),
     )
 
     # Rebalance weights for between-years equality
@@ -559,7 +569,9 @@ def _get_and_check_zero_date_epiweek(
 
 def _fit_and_eval_outbreak_features(
         outb_feats_predicted_samples: pd.Series,  # Predictions
-        out_feats_avail_samples: pd.Series,  # Available samples to evaluate
+        # out_feats_avail_samples: pd.Series,  # Available samples to evaluate
+        avail_samples_df: pd.DataFrame,
+        feature_name: str,
         model: Literal["kde", "normal", "lognormal"] = "kde",
 ):
     """Adjust predicted outbreak feature samples to a selected model, then
@@ -573,7 +585,28 @@ def _fit_and_eval_outbreak_features(
             )
         )
         pdf_evals = prediction_kde.evaluate(
-            out_feats_avail_samples
+            avail_samples_df[feature_name]
+        )
+
+    # -()- KDE with Gaussian uncertainty on the observed samples
+    # Uses the standard deviation of observations.
+    elif model == "kde-gaussian":
+        # Scott's rule for KDE bandwidth
+        factor = outb_feats_predicted_samples.size ** (-1 / 5)
+        sample_cov = outb_feats_predicted_samples.std() ** 2
+        kde_bw = factor * np.sqrt(sample_cov)
+
+        pdf_evals = kde_gaussian_likelihood(
+            outb_feats_predicted_samples=outb_feats_predicted_samples,
+            out_feats_avail_samples_df=(
+                avail_samples_df[[
+                    feature_name, f"{feature_name}_std"
+                ]].rename(columns={
+                    f"{feature_name}": "mean",
+                    f"{feature_name}_std": "std",
+                })
+            ),
+            kde_bandwidth=kde_bw,
         )
 
     # -()- Simple Gaussian fit over all predicted samples
@@ -581,7 +614,7 @@ def _fit_and_eval_outbreak_features(
         mean = outb_feats_predicted_samples.mean()
         std = outb_feats_predicted_samples.std()
         dist = normal_distribution(loc=mean, scale=std)
-        pdf_evals = dist.pdf(out_feats_avail_samples)
+        pdf_evals = dist.pdf(avail_samples_df[feature_name])
 
     # -()- Lognormal fit - Did better on statistical tests with all features
     elif model == "lognormal":
@@ -589,7 +622,7 @@ def _fit_and_eval_outbreak_features(
             outb_feats_predicted_samples
         )
         dist = lognormal_distribution(*fit_params)
-        pdf_evals = dist.pdf(out_feats_avail_samples)
+        pdf_evals = dist.pdf(avail_samples_df[feature_name])
 
     else:
         raise ValueError(f"Unknown outbreak_features_fit_model: {model}")
@@ -637,7 +670,8 @@ def _calc_likelihood_of_outbreak_features(
         # --- Evaluate calibration samples with predicted distributions
         pdf_evals = _fit_and_eval_outbreak_features(
             outb_feats_predicted_samples=outb_feats_predicted_samples,
-            out_feats_avail_samples=avail_samples_df[feature_name],
+            avail_samples_df=avail_samples_df,
+            feature_name=feature_name,
             model=cfg.outbreak_features_fit_model,
         )
 

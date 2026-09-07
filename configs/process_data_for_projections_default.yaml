@@ -1,16 +1,14 @@
-
-# Change path to intermediate location
-calibrations_main_dir: "outputs/post_validation_round/calibrations"
-output_dir: "outputs/post_validation_round/projections"
-
 ## -()- Quick test runs
+## Change path to intermediate location
+#calibrations_main_dir: "outputs/post_validation_round/calibrations"
+#output_dir: "outputs/post_validation_round/projections"
 #use_location_ids: ["AC", "SP"]
 #use_projection_years: [2022, 2023]  # For testing
 #ncpus: 1
 #calibrations_main_dir: "outputs/quick_test_runs/calibrations"  # -()- Take from quick test as well
 #output_dir: "outputs/quick_test_runs"
 
-## -()- Full run
+## -()- Full run - Validation round
 #use_location_ids: []
 #use_projection_years: [2022, 2023, 2024, 2025]
 #ncpus: 12
@@ -19,11 +17,20 @@ output_dir: "outputs/post_validation_round/projections"
 ##  "peak_week",
 ##]
 
-## -()- Alternative 01: Alternative outbreak feature predictions
-use_location_ids: []
-use_projection_years: [2025, 2026]
-ncpus: 4
-outbreak_features_predictions_dir: ".tmp/predictions/default"  # Use separate `predictions` dir for now
+# -()- Full run - Forecast round
+use_location_ids: []  ## TO TEST: ["AC", "SP"]
+use_projection_years: [2026]
+ncpus: 8
+outbreak_features_predictions_dir: "predictions/forecast_2026"
+#outbreak_feature_names: [  # Select which outbreak features are used to update distributions. Use default otherwise.
+#  "peak_week",
+#]
+
+### -()- Alternative 01: Alternative outbreak feature predictions
+#use_location_ids: []
+#use_projection_years: [2025, 2026]
+#ncpus: 4
+#outbreak_features_predictions_dir: ".tmp/predictions/default"  # Use separate `predictions` dir for now
 
 
 ## -()- Sensitivity: No update from outbreak features
