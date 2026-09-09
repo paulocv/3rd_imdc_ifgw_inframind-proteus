@@ -103,6 +103,21 @@ It then samples `N=5000` projection parameter sets (`projection_parameter_sample
 After visual inspection, 3 location/year pairs were excluded from the calibrated posterior due to poor model fit: AL_2015, PB_2021, SE_2018. 
 Exclusion done by setting `exclude_years_by_location` in `process_data_for_projections_default.yaml`. 
 
+**Changes for the forecast round**
+
+- The outbreak feature likelihoods included the mean and standard deviation of estimates
+from the dynamic model calibration (rather than just mean), better representing 
+  uncertainties.
+
+- The three southern states (RS, PR, SC) had seasons before the establishment of 
+dengue in the region (i.e. excluded seasons before 2019) removed from the calibration, to 
+reflect the new epidemiological reality of dengue in the south.
+
+- Six states (AP, GO, MA, PA, PB, RR) had the outbreak size (`case_attack_rate`) 
+predictions removed from the outbreak-feature update.
+This decreases model overconfidence and optimism caused by low overlap between feature 
+predictions and calibrations, giving room to possibly higher incidence in these locations.
+
 ### 5.3 Forecasting 
 `src/scripts/project_3rd_imdc.py` runs projection trajectories and exports `imdc_submission.csv` per location and projection-year.
 
