@@ -1,23 +1,36 @@
-
 ## -()- Quick test runs
+## Change path to intermediate location
+#calibrations_main_dir: "outputs/post_validation_round/calibrations"
+#output_dir: "outputs/post_validation_round/projections"
 #use_location_ids: ["AC", "SP"]
 #use_projection_years: [2022, 2023]  # For testing
 #ncpus: 1
 #calibrations_main_dir: "outputs/quick_test_runs/calibrations"  # -()- Take from quick test as well
 #output_dir: "outputs/quick_test_runs"
 
-# -()- Full run
-use_location_ids: []
-use_projection_years: [2022, 2023, 2024, 2025]
-ncpus: 12
+## -()- Full run - Validation round
+#use_location_ids: []
+#use_projection_years: [2022, 2023, 2024, 2025]
+#ncpus: 12
+#outbreak_features_predictions_dir: "predictions"  # Use separate `predictions` dir for now
+##outbreak_feature_names: [  # Select which outbreak features are used to update distributions. Use default otherwise.
+##  "peak_week",
+##]
 
-## -()- Alternative 01: Add outbreak features likelihood temperature
-#ll_temperature: 0.2
-#output_dir: "outputs/sensitivity/outb_feats_ll_temperature_v01"
+# -()- Full run - Forecast round
+use_location_ids: []  ## TO TEST: ["AC", "SP"]
+use_projection_years: [2026]
+ncpus: 8
+outbreak_features_predictions_dir: "predictions/forecast_2026"
+#outbreak_feature_names: [  # Select which outbreak features are used to update distributions. Use default otherwise.
+#  "peak_week",
+#]
 
-## -()- Alternative 02: Higher number of projection simulations (ACCEPTED AS DEFAULT)
-#num_projection_samples: 5000
-#output_dir: "outputs/sensitivity/change_post_sample_size_01"
+### -()- Alternative 01: Alternative outbreak feature predictions
+#use_location_ids: []
+#use_projection_years: [2025, 2026]
+#ncpus: 4
+#outbreak_features_predictions_dir: ".tmp/predictions/default"  # Use separate `predictions` dir for now
 
 
 ## -()- Sensitivity: No update from outbreak features
@@ -27,6 +40,21 @@ ncpus: 12
 #output_dir: "outputs/sensitivity/no_update_from_outbreak_features"
 #outbreak_feature_names: []  # No outbreak features considered
 
+config_override_by_location:
+    # Remove prediction total number of cases to avoid underestimations
+    AP:
+        outbreak_feature_names: ["peak_week", "peak_amplitude"]
+    GO:
+        outbreak_feature_names: ["peak_week", "peak_amplitude"]
+    MA:
+        outbreak_feature_names: ["peak_week", "peak_amplitude"]
+    PA:
+      outbreak_feature_names: ["peak_week", "peak_amplitude"]
+    PB:
+      outbreak_feature_names: [ "peak_week", "peak_amplitude" ]
+    RR:
+      outbreak_feature_names: [ "peak_week", "peak_amplitude" ]
+
 
 exclude_years_by_location:
   ES: [2021,]  # 2021: Absent cases in data
@@ -35,9 +63,9 @@ exclude_years_by_location:
   PI: [2021,]  # Extremely wide CI on calibration
   SE: [2018,]  # Calibration got artificially early season end, bad fit after peak
 
+  # Exclude seasons before dengue establishment in the South region
+  PR: [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018]
+  RS: [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018]
+  SC: [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018]
 
-#outbreak_features_predictions_dir: "outputs/outbreak_features_mockup"  # Use mockup dir
-outbreak_features_predictions_dir: "predictions"  # Use separate `predictions` dir for now
-#outbreak_feature_names: [  # Select which outbreak features are used to update distributions. Use default otherwise.
-#  "peak_week",
-#]
+

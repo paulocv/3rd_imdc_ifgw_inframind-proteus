@@ -2,7 +2,7 @@
 Calibration procedure of the outbreak dynamics model (renewal equation) of
 Inframind Proteus.
 
-This script is originally developed for the validation round of the
+This script is originally developed for the
 3rd Infodengue-Mosqlimate Dengue Challenge (3rd IMDC).
 
 Usage

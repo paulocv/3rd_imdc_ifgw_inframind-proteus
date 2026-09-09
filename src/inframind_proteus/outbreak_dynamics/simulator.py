@@ -434,7 +434,7 @@ class RenewalSimulator:
         num_sim = params_df.shape[0]  # Infer from params_df
         num_steps = cfg.num_time_steps
         gt_steps = self._gt_max_steps
-        warmup_steps = initial_infec_df.shape[1]
+        initial_steps = initial_infec_df.shape[1]
         step_dt = self._step_dt
 
         # ------------------------------------------------------------------
@@ -459,7 +459,7 @@ class RenewalSimulator:
                 f"initial_infec_df must have at least {gt_steps} columns; "
                 f"got {initial_infec_df.shape[1]}"
             )
-        if initial_infec_df.shape[1] != cfg.initial_infections.num_steps:
+        if initial_steps != cfg.initial_infections.num_steps:
             raise ValueError(
                 f"initial_infec_df has {initial_infec_df.shape[1]} columns, "
                 f"but config.initial_infections.num_steps is "
@@ -513,7 +513,7 @@ class RenewalSimulator:
         # from zero_date independently of the warm-up size.
         # ------------------------------------------------------------------
         sim_start_day = float((cfg.temporal.sim_start - cfg.temporal.zero_date).days)
-        initial_steps = cfg.initial_infections.num_steps
+        # initial_steps = cfg.initial_infections.num_steps
         t_start = sim_start_day - initial_steps * step_dt
 
         rt_vec = self.rt_model.generate(
@@ -545,10 +545,9 @@ class RenewalSimulator:
         # 6. Observation model (crop warm-up first)
         # ------------------------------------------------------------------
         rng = np.random.default_rng(cfg.rng_seed)
-        infec_sim = infec_vec[:, warmup_steps:]  # (num_sim, num_steps)
+        infec_sim = infec_vec[:, initial_steps:]  # (num_sim, num_steps)
 
         mean_cases_vec, case_beam_df = self._apply_observation_model(
-        # case_beam_df = self._apply_observation_model(
             infec_sim, _params, rng,
             population_size=cfg.location.population_size,
             reference_population_size=cfg.observation_model.reference_population_size,
@@ -823,7 +822,6 @@ class RenewalSimulator:
             print("WARNING: NaN values found in expectancy; replaced with 0.")
 
         # NB success probability: p = n / (n + μ)
-        # When expectancy = 0 → p = 1 → NB always draws 0 (correct)
         p = overdisp / (overdisp + expectancy)
 
         # # Stochastic sample (integer counts) (DISABLED)
@@ -848,6 +846,10 @@ class RenewalSimulator:
 
         # Mean cases, allowing to sample trajectories outside this function
         mean_cases_vec = expectancy
+
+        # DEBUG - Case beam quantile anomalies
+        # r = case_beam_df.xs(0.5, level="quantile") / mean_cases_vec
+        r = case_beam_df.xs(0.75, level="quantile") / mean_cases_vec
 
         # return cases_vec, case_beam_df
         return mean_cases_vec, case_beam_df
@@ -1190,16 +1192,16 @@ def sample_negative_binomial_trajectories(
     return cases_vec
 
 _nb_readonly_arr = nb.types.Array(nb.types.float64, 2, 'A', readonly=True)
-# @nb.njit(
-#     nb.float64[:,:](
-#         nb.float64[:,:],
-#         nb.float64[:,:],
-#         _nb_readonly_arr,
-#         nb.int64,
-#         nb.int64,
-#         nb.int64,
-#     ),
-# )
+@nb.njit(
+    nb.float64[:,:](
+        nb.float64[:,:],
+        nb.float64[:,:],
+        _nb_readonly_arr,
+        nb.int64,
+        nb.int64,
+        nb.int64,
+    ),
+)
 def _run_renewal_loop_numba(
     infec_vec: np.ndarray,
     rt_vec: np.ndarray,

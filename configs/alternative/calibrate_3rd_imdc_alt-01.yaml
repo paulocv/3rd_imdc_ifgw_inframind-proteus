@@ -1,0 +1,22 @@
+
+# SimulationConfig dictionary to serve as template for simulation calls.
+#base_sim_config_fpath: "configs/simulation_config_default.yaml"
+
+# Change path to intermediate location
+output_dir: "outputs/forecast_round/calibrations"
+
+# -()- Alternative run
+#use_location_ids: ["AC", "AL"]
+use_location_ids: []  # Run all
+use_years: [
+#   2010, 2011, 2012, 2013, 2014, 2015, 2016,
+#   2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024,
+  2025
+]
+ncpus: 2
+stage1:
+    num_simulations: 1048576  # 2**18 = 262144, 2**19 = 524288, 2**20 = 1048576
+stage2:
+    num_simulations: 1048576
+stage3:
+    num_simulations: 262144

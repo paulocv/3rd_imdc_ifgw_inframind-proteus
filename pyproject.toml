@@ -19,7 +19,7 @@ dependencies = [
     "statsmodels>=0.14.6",
     "scipy>=1.16.3",
     "plotly>=6.0.0",
-#    "pydantic>=2.11.10",
+    #    "pydantic>=2.11.10",
     "matplotlib>=3.9.4",
     "dvc>=3.59",
     "dvc-ssh",
@@ -29,6 +29,7 @@ dependencies = [
     # Outbreak-features component (statistical macro-feature models)
     "catboost>=1.2.7",
     "torch>=2.6.0",
+    "pandas-stubs>=3.0.5.260730",
 ]
 
 [project.optional-dependencies]

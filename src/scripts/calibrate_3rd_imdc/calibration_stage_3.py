@@ -382,16 +382,58 @@ def _stage_3_plots_and_diagnostics(
     fig.savefig(out_dir / "stage3_prior-posterior_histograms.pdf")
     plt.close(fig)
 
+    # # = = = = EXTRA DIAGNOSTIC PLOTs
+    # # --- Median trajectories from the prior ensemble (with info from Stage 2)
+    # # (Unweighted)
+    # medians_df: pd.DataFrame = sim_results.case_beam_df.xs(0.5)
+    # sampled_medians_df: pd.DataFrame = medians_df.sample(
+    #     n=500, replace=True, random_state=333,
+    # )
+    # with plt.rc_context(
+    #         {
+    #             "patch.linewidth": 0,
+    #             "lines.markeredgewidth": 0,
+    #         }
+    # ):
+    #     fig, ax = plt.subplots()
+    #
+    #     ax.plot(sampled_medians_df.T, color="palevioletred", alpha=0.1)
+    #
+    #     sr = observations_sr[sampled_medians_df.columns]
+    #     ax.plot(
+    #         sr, label="Observations",
+    #         color="black", marker="o", linestyle="", markersize=3, alpha=0.75
+    #     )
+    #
+    #     # fig.show()
+    #
+    # # --- Abstract infection trajectories
+    # sampled_infec_df = sim_results.infec_df.sample(
+    #     n=500, replace=True, random_state=337
+    # )
+    # with plt.rc_context(
+    #         {
+    #             "patch.linewidth": 0,
+    #             "lines.markeredgewidth": 0,
+    #         }
+    # ):
+    #     fig, ax = plt.subplots()
+    #
+    #     ax.plot(sampled_infec_df.T, color="palevioletred", alpha=0.1)
+    #
+    #     # fig.show()
+
+
 
     # --- Visualize sampled trajectories
-    fig, ax = plt.subplots()
-
     with plt.rc_context(
             {
                 "patch.linewidth": 0,
+                "lines.markeredgewidth": 0,
             }
     ):
-        # === Model trajectories
+        fig, ax = plt.subplots()
+        # === Model trajectories as quantiles
         ax.fill_between(
             cases_df.columns,
             cases_df.quantile(0.025), cases_df.quantile(0.975),
@@ -406,8 +448,11 @@ def _stage_3_plots_and_diagnostics(
         ax.plot(cases_df.median(), label="Median", color="palevioletred")
 
         # === Observations
-        sr = observations_sr[cases_df.columns]
-        ax.plot(sr, label="Observations", color="black", marker="o", linestyle="")
+        sr = observations_sr.reindex(cases_df.columns)
+        ax.plot(
+            sr, label="Observations",
+            color="black", marker="o", linestyle="", markersize=3, alpha=0.75
+        )
 
         ax.set_ylabel("Weekly cases")
         ax.set_title(f"Stage 3 - Sampled trajectories for {location_id} {year}")

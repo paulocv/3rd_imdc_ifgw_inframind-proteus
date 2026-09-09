@@ -1,6 +1,7 @@
 """Prepare an auxiliary table file with metadata from each Federative Unit (UF),
 starting from IMDC data.
 """
+import warnings
 from pathlib import Path
 
 import pandas as pd
@@ -8,11 +9,32 @@ import pandas as pd
 
 def main():
     # --- Parameters
-    year_range = [2010, 2026]
+    year_range = [2010, 2028]
+    copy_years_dict: dict = {
+        # tgt: src,
+        2026: 2025,  # Repeat 2025 population data for 2026
+        2027: 2025,  # Repeat 2025 population data for 2027
+    }
 
     # --- Load IMDC data
     imdc_regional_df = pd.read_csv("data/data_imdc_2026/map_regional_health.csv")
     imdc_population_df = pd.read_csv("data/data_imdc_2026/datasus_population_2001_2025.csv.gz")
+
+    # --- Augment population data with repeated years as needed.
+    df = imdc_population_df.copy()
+    for new_year, old_year in copy_years_dict.items():
+        # Check if actually missing the year
+        if new_year in df["year"].values:
+            warnings.warn(
+                f"Year {new_year} already exists in population data. "
+                f"Skipping copy from {old_year}.",
+            )
+            continue
+        # Augment the dataset
+        year_df = df[df["year"] == old_year].copy()
+        year_df["year"] = new_year
+        df = pd.concat([df, year_df], ignore_index=True)
+    population_df = df
 
     # One UF-level row with UF and macroregion metadata plus municipality count.
     uf_df = (
@@ -31,7 +53,7 @@ def main():
     # and pivot to population_yyyy columns.
     years = list(range(year_range[0], year_range[1]))
     uf_population_wide_df = (
-        imdc_population_df.loc[imdc_population_df["year"].isin(years)]
+        population_df.loc[population_df["year"].isin(years)]
         .merge(geocode_to_uf, on="geocode", how="left")
         .dropna(subset=["uf"])
         .groupby(["uf", "year"], as_index=False)["population"]
