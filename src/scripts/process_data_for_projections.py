@@ -9,6 +9,7 @@ import sys
 import warnings
 from argparse import ArgumentParser
 from collections import defaultdict
+from copy import deepcopy
 from pathlib import Path
 from typing import Union, Tuple, Any, Literal
 
@@ -123,6 +124,10 @@ class ProgramConfig(BaseConfig):
     raise_on_location_error: bool = True
     # If True, raise an error if a location fails to process.
     # If False, skip that location.
+
+    # ---- Contextual overriding of this config object
+    # Keyed by location id
+    config_override_by_location: dict[str, dict] = dict()
 
 
     def preprocess(self, *args, **kwargs):
@@ -485,6 +490,10 @@ def load_and_preprocess_location_data(
 def process_location(location_id, cfg: ProgramConfig, data: ProgramData):
     """"""
     print(f"Processing {location_id=}")
+    # Copy and update config
+    cfg = deepcopy(cfg)
+    cfg.__dict__.update(cfg.config_override_by_location.get(location_id, {}))
+
     load_and_preprocess_location_data(location_id, cfg, data)
 
     for proj_year in data.projection_years:
