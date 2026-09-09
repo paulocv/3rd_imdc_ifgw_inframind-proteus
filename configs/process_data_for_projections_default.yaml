@@ -46,12 +46,14 @@ config_override_by_location:
         outbreak_feature_names: ["peak_week", "peak_amplitude"]
     GO:
         outbreak_feature_names: ["peak_week", "peak_amplitude"]
+    MA:
+        outbreak_feature_names: ["peak_week", "peak_amplitude"]
     PA:
       outbreak_feature_names: ["peak_week", "peak_amplitude"]
     PB:
       outbreak_feature_names: [ "peak_week", "peak_amplitude" ]
-    MA:
-        outbreak_feature_names: ["peak_week", "peak_amplitude"]
+    RR:
+      outbreak_feature_names: [ "peak_week", "peak_amplitude" ]
 
 
 exclude_years_by_location:
